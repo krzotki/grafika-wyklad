@@ -258,11 +258,13 @@ class Asteroid extends GraphicsObject {
         }
 
         const shape = new CustomShape('#303030');
-        const vertices = 50;
+        const vertices = 100;
 
         for(let i = 0; i < vertices; i++) {
-            const randomX = 50 - getRandomInt(0, 75) * Math.sin(i);
-            const randomY = 50 - getRandomInt(0, 75) * Math.cos(i);
+            const random = getRandomInt(0, 75);
+
+            const randomX = 50 + random * Math.sin(i);
+            const randomY = 50 - random * Math.cos(i);
             
             shape.points.push(randomX, randomY);
         }
