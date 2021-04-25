@@ -1,6 +1,7 @@
 
 const canvas = document.getElementById('canvas');
-
+canvas.width = window.innerWidth - 2;
+canvas.height = window.innerHeight - 2;
 const ctx = canvas.getContext("2d");
 
 class Graphics {
@@ -13,6 +14,7 @@ class Graphics {
     rotation = 0;
     anchorX = 0;
     anchorY = 0;
+    zIndex = 0;
 
     children = [];
 
@@ -162,8 +164,9 @@ class Projectile extends GraphicsObject {
         this.children.push(hitbox);
         this.hitbox = hitbox;
 
-        const circle = new Circle('#ff3300');
-        circle.radius = 5;
+        const circle = new Circle('#ff5500');
+        circle.radius = 3;
+        circle.scaleY = 3;
 
         this.children.push(circle);
     }
@@ -197,6 +200,12 @@ class SpaceShip extends GraphicsObject {
             this.children.push(body);
         }
 
+        const thrusterGradient = ctx.createLinearGradient(0, 0, 0, 50);
+        thrusterGradient.addColorStop(0, "rgba(255, 127, 0, 1)");
+        thrusterGradient.addColorStop(1, "rgba(255, 127, 0, 0)");
+
+        
+        const rightThruster = new Rect(thrusterGradient);
 
         const leftWing = new Triangle('#505050');
         {
@@ -204,6 +213,15 @@ class SpaceShip extends GraphicsObject {
             leftWing.x = -250;
             leftWing.y = 100;
             this.children.push(leftWing);
+
+            const leftThruster = new Rect(thrusterGradient);
+            {
+                leftThruster.x = -100;
+                leftThruster.y = 0;
+                leftThruster.w = 50;
+                leftThruster.h = 50;
+                this.children.push(leftThruster);
+            }
         }
 
         const rightWing = new Triangle('#505050');
@@ -220,6 +238,45 @@ class SpaceShip extends GraphicsObject {
 
     }
 };
+
+class Star extends GraphicsObject {
+    constructor(x, y) {
+        super();
+
+        this.x = x;
+        this.y = y;
+        this.rotationSpeed = 0.1;
+        this.zIndex = -1;
+
+        const shape = new CustomShape('rgba(255,250,134, 0.75)');
+        
+        const vertices = 5;
+        const angle = (2 * Math.PI) / vertices;
+
+        const random = getRandomInt(25, 50);
+
+        for(let i = 0; i < vertices; i++) {
+            const x1 = 100 * Math.sin(i * angle);
+            const y1 = -100 * Math.cos(i * angle);
+            shape.points.push(x1,y1);
+
+            const x2 = random * Math.sin(i * angle + angle / 2);
+            const y2 = -random * Math.cos(i * angle + angle / 2);
+            shape.points.push(x2, y2)
+        }
+
+        shape.rotation = (2 * Math.PI) / getRandomInt(0, 12);
+        this.shape = shape;
+
+        this.children.push(shape);
+    }
+
+    update() {
+        this.y += 10;
+
+        if(this.y > canvas.height) destroy(this);
+    };
+}
 
 class Asteroid extends GraphicsObject {
     constructor() {
@@ -257,8 +314,8 @@ class Asteroid extends GraphicsObject {
             this.hitbox = hitbox;
         }
 
-        const shape = new CustomShape('#303030');
-        const vertices = 100;
+        const shape = new CustomShape('#505050');
+        const vertices = 50;
 
         for(let i = 0; i < vertices; i++) {
             const random = getRandomInt(0, 75);
@@ -307,7 +364,7 @@ const objects = [];
 
 const spaceShip = new SpaceShip();
 spaceShip.x = 500;
-spaceShip.y = 700;
+spaceShip.y = canvas.height - 50;
 spaceShip.scaleX = 0.25;
 spaceShip.scaleY = 0.25;
 
@@ -316,7 +373,11 @@ objects.push(spaceShip);
 let ticks = 0;
 
 const draw = () => {
+    objects.sort((elem1, elem2) => elem1.zIndex - elem2.zIndex);
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#000029';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if(ticks === 100) {
         ticks = 0;
@@ -326,6 +387,7 @@ const draw = () => {
 
     if(ticks % 5 === 0) {
         objects.push(new Projectile(spaceShip.x, spaceShip.y - 50));
+        
     }
 
     if(ticks % 50 === 0) {
@@ -333,11 +395,22 @@ const draw = () => {
         asteroid.x = getRandomInt(0, canvas.width - 200);
         asteroid.y = -200;
         
-        const random = getRandomInt(5, 10) / 10;
+        let random = getRandomInt(5, 10) / 10;
 
         asteroid.scaleX = random;
         asteroid.scaleY = random;
         objects.push(asteroid);
+    }
+
+    if(ticks % 10 === 0) {
+
+        const random = getRandomInt(100, 200) / 1000;
+        const star = new Star();
+        star.x = getRandomInt(0, canvas.width - 10);
+        star.y = -200;
+        star.scaleX = random;
+        star.scaleY = random;
+        objects.push(star);
     }
 
     for(let i = objects.length - 1; i >= 0; i--) {

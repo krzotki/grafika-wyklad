@@ -5,13 +5,23 @@
     
     <title>canvas graphics</title>
     <style>
+        html,body {
+            width: 100vw;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
         canvas {
             border: solid 1px black;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
     </style>
 </head>
 <body>
-    <canvas id='canvas' width="1024" height="768"></canvas>
+    <canvas id='canvas'></canvas>
     <script src='script.js'></script>
 </body>
 </html>
