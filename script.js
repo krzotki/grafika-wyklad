@@ -409,7 +409,6 @@ const draw = () => {
 
     if(ticks % 5 === 0) {
         objects.push(new Projectile(spaceShip.x, spaceShip.y - 75));
-        
     }
 
     if(ticks % 50 === 0) {
