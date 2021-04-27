@@ -200,12 +200,10 @@ class SpaceShip extends GraphicsObject {
             this.children.push(body);
         }
 
-        const thrusterGradient = ctx.createLinearGradient(0, 0, 0, 50);
-        thrusterGradient.addColorStop(0, "rgba(255, 127, 0, 1)");
-        thrusterGradient.addColorStop(1, "rgba(255, 127, 0, 0)");
+        const thrusterGradient = ctx.createLinearGradient(0, 0, 0, 150);
+        thrusterGradient.addColorStop(0, "rgba(255, 0, 0, 1)");
+        thrusterGradient.addColorStop(1, "rgba(255, 255, 0, 0)");
 
-        
-        const rightThruster = new Rect(thrusterGradient);
 
         const leftWing = new Triangle('#505050');
         {
@@ -216,10 +214,10 @@ class SpaceShip extends GraphicsObject {
 
             const leftThruster = new Rect(thrusterGradient);
             {
-                leftThruster.x = -100;
-                leftThruster.y = 0;
-                leftThruster.w = 50;
-                leftThruster.h = 50;
+                leftThruster.x = -120;
+                leftThruster.y = 50;
+                leftThruster.w = 80;
+                leftThruster.h = 100;
                 this.children.push(leftThruster);
             }
         }
@@ -230,6 +228,15 @@ class SpaceShip extends GraphicsObject {
             rightWing.x = 150;
             rightWing.y = 100;
             this.children.push(rightWing);
+
+            const rightThruster = new Rect(thrusterGradient);
+            {
+                rightThruster.x = 80;
+                rightThruster.y = 50;
+                rightThruster.w = 80;
+                rightThruster.h = 100;
+                this.children.push(rightThruster);
+            }
         }
 
     }
@@ -240,15 +247,16 @@ class SpaceShip extends GraphicsObject {
 };
 
 class Star extends GraphicsObject {
-    constructor(x, y) {
+    constructor(x, y, alpha) {
         super();
 
         this.x = x;
         this.y = y;
         this.rotationSpeed = 0.1;
         this.zIndex = -1;
+        this.alpha = alpha;
 
-        const shape = new CustomShape('rgba(255,250,134, 0.75)');
+        const shape = new CustomShape(`rgba(255,250,134, ${this.alpha})`);
         
         const vertices = 5;
         const angle = (2 * Math.PI) / vertices;
@@ -272,7 +280,7 @@ class Star extends GraphicsObject {
     }
 
     update() {
-        this.y += 10;
+        this.y += this.speed;
 
         if(this.y > canvas.height) destroy(this);
     };
@@ -285,7 +293,6 @@ class Asteroid extends GraphicsObject {
         this.maxHp = 5;
         this.hp = this.maxHp;
         this.rotationSpeed = getRandomInt(-5, 5) / 100;
-
         this.x = 0;
         this.y = 0;
 
@@ -359,6 +366,21 @@ class Asteroid extends GraphicsObject {
     }
 }
 
+const spawnStars = () => {
+    for(let i = 0; i < 50; i++) {
+        let random = getRandomInt(50, 200) / 1000;
+        const alpha = (random * 1000) / 300;
+        const x = getRandomInt(0, canvas.width);
+        const y = getRandomInt(0, canvas.height);
+        const star = new Star(x, y, alpha);
+
+        star.scaleX = random;
+        star.scaleY = random;
+        star.speed = random * 15; 
+
+        objects.push(star);
+    }
+};
 
 const objects = [];
 
@@ -386,7 +408,7 @@ const draw = () => {
     ticks++;  
 
     if(ticks % 5 === 0) {
-        objects.push(new Projectile(spaceShip.x, spaceShip.y - 50));
+        objects.push(new Projectile(spaceShip.x, spaceShip.y - 75));
         
     }
 
@@ -404,12 +426,16 @@ const draw = () => {
 
     if(ticks % 10 === 0) {
 
-        const random = getRandomInt(100, 200) / 1000;
-        const star = new Star();
-        star.x = getRandomInt(0, canvas.width - 10);
-        star.y = -200;
+        let random = getRandomInt(50, 200) / 1000;
+        const alpha = (random * 1000) / 300;
+        const x = getRandomInt(0, canvas.width - 10);
+        const y = -200;
+        const star = new Star(x, y, alpha);
+
         star.scaleX = random;
         star.scaleY = random;
+        star.speed = random * 15; 
+
         objects.push(star);
     }
 
@@ -436,9 +462,11 @@ const draw = () => {
 canvas.onmousemove = (evt) => {
     spaceShip.x = evt.clientX;
 };
+spawnStars();
 
 requestAnimationFrame(draw);
 
 const destroy = (destroyedObject) => {
     destroyedObject.destroyed = true;
 };
+
